@@ -37,6 +37,9 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+#IDEs
+.idea
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -118,7 +121,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-/sit
+/site
 
 # mypy
 .mypy_cache/
