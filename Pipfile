@@ -4,6 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+azure-storage-blob = "*"
+scrapy = "*"
 
 [dev-packages]
 
