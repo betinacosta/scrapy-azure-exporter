@@ -2,12 +2,13 @@ from azure.storage.blob import BlobServiceClient
 from azure.core.exceptions import ResourceNotFoundError
 import typing
 from scrapy.exceptions import NotConfigured
+from scrapy.extensions.feedexport import BlockingFeedStorage
 import logging
 
 """The pipeline for adding a file to Azure Blob"""
 
 
-class AzureExporterPipeline:
+class AzureFeedExporter(BlockingFeedStorage):
 
     def __init__(self, container_name, service, azure_export_filename):
         self.container_name = container_name
@@ -28,10 +29,13 @@ class AzureExporterPipeline:
             )
         return cls(container_name=container_name, service=service, azure_export_filename=azure_export_filename)
 
-    def process_item(self, item: typing.ByteString):
+    def _store_in_thread(self, file):
+        file.seek(0)
         try:
             blob_client = self.service.get_blob_client(self.container_name, self.azure_export_filename)
         except ResourceNotFoundError as e:
             logging.error(f"Container doesn't exist: {e}")
             return
-        blob_client.upload_blob(item, blob_type="BlockBlob")
+
+        with open(file, "rb") as data:
+            blob_client.upload_blob(data)
