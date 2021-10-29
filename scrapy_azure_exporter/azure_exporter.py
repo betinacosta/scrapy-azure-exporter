@@ -10,9 +10,9 @@ import logging
 
 class AzureFeedExporter(BlockingFeedStorage):
 
-    def __init__(self, container_name, service, azure_export_filename):
+    def __init__(self, container_name, blob_service_client, azure_export_filename):
         self.container_name = container_name
-        self.service = service
+        self.blob_service_client = blob_service_client
         self.azure_export_filename = azure_export_filename
 
     @classmethod
@@ -22,17 +22,21 @@ class AzureFeedExporter(BlockingFeedStorage):
         azure_export_filename = crawler.settings.get("AZURE_EXPORT_FILENAME")
 
         try:
-            service = BlobServiceClient.from_connection_string(conn_str=connection_string)
+            blob_service_client = BlobServiceClient.from_connection_string(conn_str=connection_string)
         except ValueError as e:
             raise NotConfigured(
                 f"Could not connect to Azure Client: {e}"
             )
-        return cls(container_name=container_name, service=service, azure_export_filename=azure_export_filename)
+        return cls(
+            container_name=container_name,
+            blob_service_client=blob_service_client,
+            azure_export_filename=azure_export_filename
+        )
 
     def _store_in_thread(self, file):
         file.seek(0)
         try:
-            blob_client = self.service.get_blob_client(self.container_name, self.azure_export_filename)
+            blob_client = self.blob_service_client.get_blob_client(self.container_name, self.azure_export_filename)
         except ResourceNotFoundError as e:
             logging.error(f"Container doesn't exist: {e}")
             return
